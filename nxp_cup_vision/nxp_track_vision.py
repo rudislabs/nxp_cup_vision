@@ -6,6 +6,7 @@ import re
 import importlib
 import numpy as np
 import rclpy
+import time
 from rclpy.qos import qos_profile_sensor_data
 from rclpy.node import Node
 from rclpy.exceptions import ParameterNotDeclaredException
@@ -171,18 +172,21 @@ class NXPTrackVision(Node):
 
         
         #convert image to grayscale
-        passedImageGray = cv2.cvtColor(passedImage,cv2.COLOR_BGR2GRAY)
-        
+        #passedImageGray = cv2.cvtColor(passedImage,cv2.COLOR_BGR2GRAY)
+        #passedImageGray = cv2.cvtColor(passedImage,cv2.COLOR_BGR2HSV)
+
         #Image dimensions
-        imageHeight, imageWidth = passedImageGray.shape[:2]
+        imageHeight, imageWidth = passedImage.shape[:2]
         
         #Threshold image black and white
-        passedImageGrayThresh = cv2.bitwise_not(cv2.threshold(
-            passedImageGray, 50, 255, cv2.THRESH_BINARY)[1])
-        
+        #passedImageGrayThresh = cv2.bitwise_not(cv2.threshold(
+        #    passedImageGray, 50, 255, cv2.THRESH_BINARY)[1])
+        passedImageGrayThresh = cv2.inRange(passedImage, (0,0,75),(128,128,255))
+
         #Create image mask background
+        #maskWhite = np.ones(passedImageGrayThresh.shape[:2], dtype="uint8") * 255
         maskWhite = np.ones(passedImageGrayThresh.shape[:2], dtype="uint8") * 255
-        
+
         #calculate points to be masked based on provided ratio
         maskVehicleBoxTopLeftXY = (int(imageWidth*(1.0-self.maskRectRatioWidthHeight[0])/2.0), 
             int(imageHeight*(1.0-self.maskRectRatioWidthHeight[1])))
@@ -227,7 +231,7 @@ class NXPTrackVision(Node):
 
             if self.debug:
                 #Paint all the areas found in the contour
-                cv2.fillPoly(returnedImageDebug,pts=[cn],color=(0,0,255))
+                cv2.fillPoly(returnedImageDebug,pts=[cn],color=(0,0,0))
             
             #Find lines from contours using least square method
             [vectorX,vectorY,linePointX,linePointY] = cv2.fitLine(cn,cv2.DIST_L2,0,0.01,0.01)
@@ -375,7 +379,7 @@ class NXPTrackVision(Node):
                     debugPixyMessageTopLeftXY[1]+pixyScaledVectorArray[lineNumber][1]),
                     (debugPixyMessageTopLeftXY[0]+pixyScaledVectorArray[lineNumber][2],
                     debugPixyMessageTopLeftXY[1]+pixyScaledVectorArray[lineNumber][3]),
-                    (255,128,128),1)
+                    (0,0,0),1)
                 
                 #Draw box point for top left XY for Pixy space debug image
                 returnedImageDebug = cv2.rectangle(returnedImageDebug,
