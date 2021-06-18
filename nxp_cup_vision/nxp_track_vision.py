@@ -92,8 +92,8 @@ class NXPTrackVision(Node):
         self.timeStamp = self.get_clock().now().nanoseconds
         
         #Pixy image size parameters
-        self.pixyImageWidth = 72
-        self.pixyImageHeight = 52
+        self.pixyImageWidth = 78
+        self.pixyImageHeight = 51
         
         #Subscribers
         self.imageSub = self.create_subscription(sensor_msgs.msg.Image, 
