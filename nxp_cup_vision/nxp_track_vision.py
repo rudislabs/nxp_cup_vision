@@ -167,21 +167,19 @@ class NXPTrackVision(Node):
                 self.sortRightToLeft=True
                 self.switchVectorPoints=True
                 self.stage = 4
-                self.get_logger().info("\nPublishing lines Right to Left, points ARE switched")
+                self.get_logger().info("\nPublishing lines Right to Left, points ARE switched")      
+        
+        
+        passedImageHSV = cv2.cvtColor(passedImage,cv2.COLOR_RGB2HSV)
+        lowerYellow = np.array([70,140,180])
+        upperYellow = np.array([120,200,220])
+        passedImageHSVThresh = cv2.inRange(passedImageHSV, lowerYellow, upperYellow)
+
+        imageHeight, imageWidth = passedImageHSV.shape[:2]
 
         
-        #convert image to grayscale
-        passedImageGray = cv2.cvtColor(passedImage,cv2.COLOR_BGR2GRAY)
-        
-        #Image dimensions
-        imageHeight, imageWidth = passedImageGray.shape[:2]
-        
-        #Threshold image black and white
-        passedImageGrayThresh = cv2.bitwise_not(cv2.threshold(
-            passedImageGray, 50, 255, cv2.THRESH_BINARY)[1])
-        
         #Create image mask background
-        maskWhite = np.ones(passedImageGrayThresh.shape[:2], dtype="uint8") * 255
+        maskWhite = np.ones(passedImageHSV.shape[:2], dtype="uint8") * 255
         
         #calculate points to be masked based on provided ratio
         maskVehicleBoxTopLeftXY = (int(imageWidth*(1.0-self.maskRectRatioWidthHeight[0])/2.0), 
@@ -194,14 +192,14 @@ class NXPTrackVision(Node):
         maskVehicle = cv2.rectangle(maskWhite,maskVehicleBoxTopLeftXY,
             maskVehicleBoxBottomRightXY,color=0,thickness=-1)
         
-        #Mask out the area of the vehicle
-        passedImageGrayThreshMasked = cv2.bitwise_and(passedImageGrayThresh, 
-            passedImageGrayThresh, mask=maskVehicle)
+        # #Mask out the area of the vehicle
+        # passedImageHSVThreshMasked = cv2.bitwise_and(passedImageHSVThresh, 
+        #     passedImageHSVThresh, mask=maskVehicle)
         
         #Find contours
-        cnts, hierarchy = cv2.findContours(passedImageGrayThreshMasked.copy(),
+        cnts, hierarchy = cv2.findContours(passedImageHSVThresh.copy(),
             cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-        
+
         returnedImageDebug=passedImage
 
         #Max number of found contours to process based on area of return, largest returned first
