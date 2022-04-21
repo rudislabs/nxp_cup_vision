@@ -14,9 +14,10 @@ from rcl_interfaces.msg import ParameterType
 from rcl_interfaces.msg import ParameterDescriptor
 import sensor_msgs.msg
 import nxp_cup_interfaces.msg
+import cv2
 from cv_bridge import CvBridge
 from rclpy.qos import QoSProfile
-import cv2
+
 if cv2.__version__ < "4.0.0":
     raise ImportError("Requires opencv >= 4.0, "
                       "but found {:s}".format(cv2.__version__))
