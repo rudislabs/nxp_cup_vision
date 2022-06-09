@@ -178,7 +178,7 @@ class NXPTrackVision(Node):
         
         #Threshold image black and white
         passedImageGrayThresh = cv2.bitwise_not(cv2.threshold(
-            passedImageGray, 50, 255, cv2.THRESH_BINARY)[1])
+            passedImageGray, 80, 255, cv2.THRESH_BINARY)[1])
         
         #Create image mask background
         maskWhite = np.ones(passedImageGrayThresh.shape[:2], dtype="uint8") * 255
