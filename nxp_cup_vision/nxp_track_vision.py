@@ -13,6 +13,7 @@ from rcl_interfaces.msg import Parameter
 from rcl_interfaces.msg import ParameterType
 from rcl_interfaces.msg import ParameterDescriptor
 import sensor_msgs.msg
+from geometry_msgs.msg import Twist
 import cv2
 from cv_bridge import CvBridge
 from rclpy.qos import QoSProfile
@@ -97,6 +98,9 @@ class NXPTrackVision(Node):
         self.debugDetectionImagePub = self.create_publisher(sensor_msgs.msg.Image,
             '/DebugImage2', 10)
 
+        self.cmdVel = Twist()
+        self.cmdVelPub = self.create_publisher(Twist, '/requested_vel', 10)
+
     def findLines(self, passedImage):
         
         self.timeStamp = self.get_clock().now().nanoseconds    
@@ -172,15 +176,24 @@ class NXPTrackVision(Node):
         vx,vy,x,y = avgVector
 
         normalizedVectorSlope = vx/vy
+        if(normalizedVectorSlope > 1 or normalizedVectorSlope < -1):
+            normalizedVectorSlope = 0.0
         distanceFromCenter = (x - 150) / 150
 
-        print(vy)
-        print(vx)        
-        print(normalizedVectorSlope)
-        print(distanceFromCenter)
+        #print(vy)
+        #print(vx)        
+        #print(normalizedVectorSlope)
+        #print(distanceFromCenter)
 
-        angularVelocity = distanceFromCenter + normalizedVectorSlope * 5
-        print("angularVelocity: " + str(angularVelocity))
+        linearVelocity = 1.25
+
+        angularVelocity = (normalizedVectorSlope*.5) + (-1*distanceFromCenter*.5)
+        #print("angularVelocity: " + str(angularVelocity))
+
+
+        self.cmdVel.linear.x = linearVelocity
+        self.cmdVel.angular.z = float(angularVelocity)
+        self.cmdVelPub.publish(self.cmdVel)
 
         return returnedImageDebug
       
