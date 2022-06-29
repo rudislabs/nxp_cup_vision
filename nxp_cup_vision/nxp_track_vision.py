@@ -49,7 +49,7 @@ class NXPTrackVision(Node):
             type=ParameterType.PARAMETER_BOOL,
             description='Debug boolean.')
         
-        self.declare_parameter("linear_velocity", 1.0, 
+        self.declare_parameter("linear_velocity", 1.25, 
             linear_velocity_descriptor)
         
         self.declare_parameter("camera_image", "/NPU/image_sim", 
@@ -102,9 +102,9 @@ class NXPTrackVision(Node):
         
         self.timeStamp = self.get_clock().now().nanoseconds    
         
-        passedImageHSV = cv2.cvtColor(passedImage,cv2.COLOR_RGB2HSV)
-        lowerYellow = np.array([70,140,180])
-        upperYellow = np.array([120,200,220])
+        passedImageHSV = cv2.cvtColor(passedImage,cv2.COLOR_BGR2HSV)
+        lowerYellow = np.array([20,120,64])
+        upperYellow = np.array([40,255,255])
         passedImageHSVThresh = cv2.inRange(passedImageHSV, lowerYellow, upperYellow)
 
         #Find contours
@@ -140,12 +140,14 @@ class NXPTrackVision(Node):
 
         vx,vy,x,y = avgVector
 
-        normalizedVectorSlope = vx/vy
+        if vy > 0 or vy < 0:
+            normalizedVectorSlope = vx/vy
+        else:
+            normalizedVectorSlope = 0.0
         if(normalizedVectorSlope > 1 or normalizedVectorSlope < -1):
             normalizedVectorSlope = 0.0
         distanceFromCenter = (x - 150) / 150
 
-        self.linearVelocity = 1.25
 
         angularVelocity = (normalizedVectorSlope*.5) + (-1*distanceFromCenter*.5)
 
